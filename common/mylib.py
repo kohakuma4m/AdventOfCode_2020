@@ -17,5 +17,10 @@ def readFileLineGroups(filename, groupSeparator: str = '\n\n'):
 #####################
 # Math utils
 #####################
+from functools import reduce
+
 def inbetween(a, val, b):
     return val >= a and val <= b
+
+def multiplyListValues(l: list):
+    return reduce(lambda x, y: x * y, l , 1)
