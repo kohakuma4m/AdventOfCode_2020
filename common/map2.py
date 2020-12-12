@@ -50,6 +50,9 @@ def get8AdjacentDirections() -> List[Coordinate]:
 def get8AdjacentPositions(p: Coordinate) -> List[Coordinate]:
     return [Coordinate(p.x + d.x, p.y + d.y) for d in get8AdjacentDirections()]
 
+def getManhattanDistance(p1: Coordinate, p2: Coordinate) -> int:
+    return abs(p2.x - p1.x) + abs(p2.y - p1.y)
+
 # Type alias
 GridColumn = List[str]
 GridRow = List[GridColumn]
