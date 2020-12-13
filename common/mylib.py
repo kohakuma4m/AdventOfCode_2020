@@ -18,9 +18,23 @@ def readFileLineGroups(filename, groupSeparator: str = '\n\n'):
 # Math utils
 #####################
 from functools import reduce
+from math import gcd
 
+# min <= value <= max
 def inbetween(a, val, b):
     return val >= a and val <= b
 
+# Product of all list values
 def multiplyListValues(l: list):
     return reduce(lambda x, y: x * y, l , 1)
+
+# Greatest common divisor of 1 or more integers: gcd(a,b,c) = gcd(gcd(a,b),c)
+def greatestCommonDenominator(*numbers):
+    return reduce(gcd, numbers)
+
+# Least common multiple of 1 or more integers: lcm(a,b,c) = lcm(lcm(a,b),c)
+def leastCommonMultiple(*numbers):
+    def lcm(a, b):
+        return (a * b) // greatestCommonDenominator(a, b)
+
+    return reduce(lcm, numbers, 1)
