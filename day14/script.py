@@ -25,7 +25,7 @@ def applyMask(value: int, mask: str) -> int:
         else: # Unchanged
             maskedValue = binaryValue[-1-i] + maskedValue
 
-    return int(maskedValue, 2)
+    return int(maskedValue, 2) # int to binary conversion
 
 def applyMask2(value: int, mask: str) -> str:
     binaryValue = '%s' % f'{value:b}' # String of binary value
@@ -40,23 +40,28 @@ def applyMask2(value: int, mask: str) -> str:
 
     return maskedValue
 
-def getAllFloatingAddresses(address: str) -> list:
-    floatingBitPositions = [idx for idx, c in enumerate(address) if c == 'X']
+def getAllFloatingAddresses(maskedAddress: str) -> list:
+    floatingBitPositions = [idx for idx, c in enumerate(maskedAddress) if c == 'X']
     nbFloatingBits = len(floatingBitPositions)
 
-    # 2^n combinations
+    # 2^n combinations (n = nbFloatingBits)
     floatingBitValues = product([0, 1], repeat=nbFloatingBits)
 
     addresses = []
     for values in floatingBitValues:
         floatingAddress = ''
         positionsValueIndex = { floatingBitPositions[i]: str(values[i]) for i in range(0, nbFloatingBits) }
-        for idx in range(0, len(address)):
-            floatingAddress += positionsValueIndex[idx] if idx in floatingBitPositions else address[idx]
+        for idx in range(0, len(maskedAddress)):
+            floatingAddress += positionsValueIndex[idx] if idx in floatingBitPositions else maskedAddress[idx]
 
-        addresses.append(int(floatingAddress, 2))
+        addresses.append(int(floatingAddress, 2)) # int to binary conversion
 
     return addresses
+
+# Much faster version (constructing resulted address with product directly)
+def getAllFloatingAddresses2(maskedAddress: str) -> list:
+    options = [c if c != 'X' else ('0', '1') for c in maskedAddress]
+    return [int(''.join(o),2) for o in product(*options)] # 2^n combinations (n = nbFloatingBits)
 
 class Program:
     def __init__(self, instructions: list, memory: dict = {}):
@@ -84,7 +89,7 @@ class Program:
                 address = applyMask2(int(idx), self.mask)
 
                 # Write to all floating memory address
-                for floatingAddress in getAllFloatingAddresses(address):
+                for floatingAddress in getAllFloatingAddresses2(address):
                     self.memory[floatingAddress] = int(val)
 
     def resetMemory(self):
