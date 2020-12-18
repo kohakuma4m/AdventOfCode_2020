@@ -2,8 +2,7 @@ import sys; sys.path.append('../common')
 import mylib as utils # pylint: disable=import-error
 import map2d as mapUtils # pylint: disable=import-error
 from map2d import Grid # pylint: disable=import-error
-import map3d as mapUtils3d # pylint: disable=import-error
-from map3d import Coordinate3d # pylint: disable=import-error
+from map3d import Coordinate3d, get3dAdjacentPositions, get3dManhattanDistance # pylint: disable=import-error
 
 from enum import Enum
 
@@ -66,7 +65,7 @@ def mapCubesNeighbors(cubesMap: dict) -> None:
         if len(cube.adjacentCubes) == 26:
             continue # All cube neighbors already mapped
 
-        for p2 in mapUtils3d.get3dAdjacentPositions(p):
+        for p2 in get3dAdjacentPositions(p):
             if p2 in cubesMap:
                 # Inner cubes (already in map)
                 cube.adjacentCubes.add(cubesMap[p2])
@@ -78,7 +77,7 @@ def mapCubesNeighbors(cubesMap: dict) -> None:
     # New cubes
     for p2, newCube in newCubesMap.items():
         cubesMap[p2] = newCube # Adding new cubes to cubes map
-        for p in mapUtils3d.get3dAdjacentPositions(p2):
+        for p in get3dAdjacentPositions(p2):
             if p in cubesMap:
                 newCube.adjacentCubes.add(cubesMap[p])
                 cubesMap[p].adjacentCubes.add(newCube)
@@ -129,7 +128,7 @@ for i in range(NB_CYCLES):
     runCycle(cubesMap) # Getting new states
     mapCubesNeighbors(cubesMap) # Adding new cube neighbors
     print(f'After {i+1} cycles')
-    printCubesMap(cubesMap)
+    #printCubesMap(cubesMap)
 
 nbActiveCubes = countActiveCubes(cubesMap)
-print(f'1) Number of active cubes after {NB_CYCLES} = {nbActiveCubes}')
+print(f'1) Number of active cubes after {NB_CYCLES} cycles = {nbActiveCubes}')

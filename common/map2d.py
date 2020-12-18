@@ -26,7 +26,7 @@ def get2dAdjacentPositions(p: Coordinate) -> List[Coordinate]:
     return [Coordinate(p.x + d.x, p.y + d.y) for d in get2dAdjacentDirections()]
 
 # Distance
-def getManhattanDistance(p1: Coordinate, p2: Coordinate) -> int:
+def get2dManhattanDistance(p1: Coordinate, p2: Coordinate) -> int:
     return abs(p2.x - p1.x) + abs(p2.y - p1.y)
 
 # Type alias

@@ -18,5 +18,5 @@ def get3dAdjacentPositions(p: Coordinate3d) -> List[Coordinate3d]:
     return [Coordinate3d(p.x + d.x, p.y + d.y, p.z + d.z) for d in get3dAdjacentDirections()]
 
 # Distance
-def getManhattanDistance3d(p1: Coordinate3d, p2: Coordinate3d) -> int:
+def get3dManhattanDistance(p1: Coordinate3d, p2: Coordinate3d) -> int:
     return abs(p2.x - p1.x) + abs(p2.y - p1.y) + abs(p2.z - p1.z)

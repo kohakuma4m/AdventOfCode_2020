@@ -18,5 +18,5 @@ def get4dAdjacentPositions(p: Coordinate4d) -> List[Coordinate4d]:
     return [Coordinate4d(p.x + d.x, p.y + d.y, p.z + d.z, p.w + d.w) for d in get4dAdjacentDirections()]
 
 # Distance
-def getManhattanDistance4d(p1: Coordinate4d, p2: Coordinate4d) -> int:
+def get4dManhattanDistance(p1: Coordinate4d, p2: Coordinate4d) -> int:
     return abs(p2.x - p1.x) + abs(p2.y - p1.y) + abs(p2.z - p1.z) + abs(p2.w - p1.w)

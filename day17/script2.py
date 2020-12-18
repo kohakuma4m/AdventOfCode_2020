@@ -60,9 +60,9 @@ def mapHypercubes(grid: Grid) -> dict:
 def mapHypercubesNeighbors(hypercubesMap: dict) -> None:
     newHypercubesMap = {}
 
-    # Original cubes
+    # Original hypercubes
     for p, hypercube in hypercubesMap.items():
-        if len(hypercube.adjacentHypercubes) == 26:
+        if len(hypercube.adjacentHypercubes) == 80:
             continue # All cube neighbors already mapped
 
         for p2 in get4dAdjacentPositions(p):
@@ -74,7 +74,7 @@ def mapHypercubesNeighbors(hypercubesMap: dict) -> None:
                 newHypercube = Hypercube(p2, SYMBOL.INACTIVE)
                 newHypercubesMap[p2] = newHypercube
 
-    # New cubes
+    # New hypercubes
     for p2, newHypercube in newHypercubesMap.items():
         hypercubesMap[p2] = newHypercube # Adding new hypercubes to hypercubes map
         for p in get4dAdjacentPositions(p2):
@@ -133,4 +133,4 @@ for i in range(NB_CYCLES):
     #printHypercubesMap(hypercubesMap)
 
 nbActiveHypercubes = countActiveHypercubes(hypercubesMap)
-print(f'2) Number of active hypercubes after {NB_CYCLES} = {nbActiveHypercubes}')
+print(f'2) Number of active hypercubes after {NB_CYCLES} cycles = {nbActiveHypercubes}')
