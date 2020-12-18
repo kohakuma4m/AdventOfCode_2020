@@ -1,7 +1,7 @@
 import sys; sys.path.append('../common')
 import mylib as utils # pylint: disable=import-error
-import map2 as mapUtils # pylint: disable=import-error
-from map2 import Coordinate, Grid # pylint: disable=import-error
+import map2d as mapUtils # pylint: disable=import-error
+from map2d import Coordinate, Grid # pylint: disable=import-error
 
 from enum import Enum
 from copy import deepcopy
@@ -66,7 +66,7 @@ def mapSeats(grid: Grid) -> dict:
 
 def mapSeatsNeighbors(grid: Grid, seatsGrid: dict) -> None:
     for p, seat in seatsGrid.items():
-        seat.adjacentSeats = [seatsGrid[p2] for p2 in mapUtils.get8AdjacentPositions(p) if p2 in seatsGrid]
+        seat.adjacentSeats = [seatsGrid[p2] for p2 in mapUtils.get2dAdjacentPositions(p) if p2 in seatsGrid]
 
 def switchSeats(grid: Grid, seatsGrid: dict, switchSeatThreshold: int):
     newGrid = deepcopy(grid)

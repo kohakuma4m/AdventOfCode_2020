@@ -1,7 +1,7 @@
 import sys; sys.path.append('../common')
 import mylib as utils # pylint: disable=import-error
-import map2 as mapUtils # pylint: disable=import-error
-from map2 import Coordinate # pylint: disable=import-error
+import map2d as mapUtils # pylint: disable=import-error
+from map2d import Coordinate # pylint: disable=import-error
 
 from enum import Enum
 
