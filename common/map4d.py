@@ -3,14 +3,14 @@
 ################################
 from typing import List, Dict
 from collections import namedtuple
-from map3d import Coordinate3d, get26AdjacentDirections
+from map3d import Coordinate3d, get3dAdjacentDirections
 
 # Coordinate
 Coordinate4d = namedtuple('Coordinate4d', ['x', 'y', 'z', 'w'])
 
 # 3 ** 4 = 80 adjacent neighbors
 def get4dAdjacentDirections() -> List[Coordinate4d]:
-    directions3d = get26AdjacentDirections() + [Coordinate3d(0, 0, 0)]
+    directions3d = get3dAdjacentDirections() + [Coordinate3d(0, 0, 0)]
     directions4d = [Coordinate4d(d.x, d.y, d.z, w) for d in directions3d for w in (-1, 0, 1)]
     return [d for d in directions4d if d != Coordinate4d(0, 0, 0, 0)]
 
