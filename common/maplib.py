@@ -12,7 +12,7 @@ def buildCoordinate(dimensions: int = 2) -> namedtuple:
     for i in range(len(names), dimensions - len(names)):
         names += [f'n{i}'] # Unamed dimensions
 
-    return namedtuple(f'Coordinate{dimensions}d', names)
+    return namedtuple(f'Coordinate{dimensions}d', names, defaults=(0,) * len(names))
 
 # 2, 3, 4 dimensions coordinates
 Coordinate = buildCoordinate()

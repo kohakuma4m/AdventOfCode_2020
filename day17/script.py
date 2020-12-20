@@ -1,6 +1,6 @@
 import sys; sys.path.append('../common')
 import mylib as utils # pylint: disable=import-error
-from maplib import Grid, Coordinate3d, getAdjacentPositions # pylint: disable=import-error
+from maplib import Grid, Coordinate3d, Coordinate4d, getAdjacentPositions # pylint: disable=import-error
 
 from enum import Enum
 
@@ -18,7 +18,7 @@ class SYMBOL(Enum):
     ACTIVE = '#'
 
 class Cube():
-    def __init__(self, position: Coordinate3d, state: SYMBOL, adjacentPositions: list = None):
+    def __init__(self, position: tuple, state: SYMBOL, adjacentPositions: list = None):
         self.position = position
         self.state = state
         self.adjacentPositions = sorted(getAdjacentPositions(position)) if adjacentPositions is None else adjacentPositions
@@ -43,21 +43,7 @@ class Cube():
         return hash(self.position)
 
     def __str__(self):
-        return '(%s, %s, %s) --> %s' % (self.position.x, self.position.y, self.position.z, self.state.name)
-
-# Note: We only need to track ACTIVE cube, since INACTIVE cube with no ACTIVE cube neighbors will always remain INACTIVE
-def mapActiveCubes(grid: Grid) -> dict:
-    cubesMap = {}
-
-    # Map active cubes
-    for y in range(0, grid.height):
-        for x in range(0, grid.width):
-            s = SYMBOL(grid.data[y][x])
-            if s == SYMBOL.ACTIVE:
-                p = Coordinate3d(x, y, 0)
-                cubesMap[p] = Cube(p, s)
-
-    return cubesMap
+        return '(%s) --> %s' % (','.join([str(self.position[i]) for i in range(len(self.position))]), self.state.name)
 
 def runCycle(cubesMap: dict) -> dict:
     checkedCubePositions = set()
@@ -93,23 +79,48 @@ def runCycle(cubesMap: dict) -> dict:
 
     return newCubesMap
 
-def printCubesMap(cubesMap: dict) -> None:
+# Note: We only need to track ACTIVE cube, since INACTIVE cube with no ACTIVE cube neighbors will always remain INACTIVE
+def mapActiveCubes(grid: Grid, Coordinate: tuple) -> dict:
+    cubesMap = {}
+
+    # Map active cubes
+    for y in range(0, grid.height):
+        for x in range(0, grid.width):
+            s = SYMBOL(grid.data[y][x])
+            if s == SYMBOL.ACTIVE:
+                p = Coordinate(x, y) # Other values are zero by default
+                cubesMap[p] = Cube(p, s)
+
+    return cubesMap
+
+def printCubesMapLayer(cubesMap: dict, dimensionCoordinates: tuple) -> None:
     xPositions = sorted([p.x for p in cubesMap.keys()])
     yPositions = sorted([p.y for p in cubesMap.keys()])
+
+    for y in range(yPositions[0] - 1, yPositions[-1] + 2):
+        s = ''
+        for x in range(xPositions[0] - 1, xPositions[-1] + 2):
+            p = (x, y) + dimensionCoordinates[2:]
+            if p in cubesMap:
+                s += cubesMap[p].state.value # Should be ACTIVE
+            else:
+                s += SYMBOL.INACTIVE.value
+        print(s)
+
+def printCubesMapVolume(cubesMap: dict, dimensionCoordinates: tuple) -> None:
     zPositions = sorted([p.z for p in cubesMap.keys()])
+    wString = ',w = %d' % dimensionCoordinates[3] if 3 < len(dimensionCoordinates) else ''
 
     for z in range(zPositions[0] - 1, zPositions[-1] + 2):
-        print('z = %d' % z)
-        for y in range(yPositions[0] - 1, yPositions[-1] + 2):
-            s = ''
-            for x in range(xPositions[0] - 1, xPositions[-1] + 2):
-                p = Coordinate3d(x, y, z)
-                if p in cubesMap:
-                    s += cubesMap[p].state.value # Should be ACTIVE
-                else:
-                    s += SYMBOL.INACTIVE.value
-            print(s)
+        print('z = %d' % z + wString)
+        printCubesMapLayer(cubesMap, (0, 0, z) + dimensionCoordinates[3:])
         print('\n')
+
+def printHyperCubesMap(cubesMap: dict) -> None:
+    wPositions = sorted([p.w for p in cubesMap.keys()])
+
+    for w in range(wPositions[0] - 1, wPositions[-1] + 2):
+        printCubesMapVolume(cubesMap, Coordinate4d(0, 0, 0, w))
 
 # endregion COMMON
 ###########################
@@ -118,15 +129,29 @@ def printCubesMap(cubesMap: dict) -> None:
 # FETCH DATA
 ###########################
 lines = utils.readFileLines(filename)
+grid = Grid(lines)
 
 ########
 # PART 1
 ########
 
-grid = Grid(lines)
-cubesMap = mapActiveCubes(grid)
+cubesMap = mapActiveCubes(grid, Coordinate3d)
+#printCubesMapVolume(cubesMap, dimensionCoordinates=Coordinate3d())
 
-printCubesMap(cubesMap)
+print('Part 1\n=============')
+for i in range(NB_CYCLES):
+    cubesMap = runCycle(cubesMap)
+    nbActiveCubes = len(cubesMap.keys()) # Cubes map only contains active cubes
+    print(f'Number of active cubes after {i+1} cycles = {nbActiveCubes}')
+
+########
+# PART 2
+########
+
+cubesMap = mapActiveCubes(grid, Coordinate4d)
+#printHyperCubesMap(cubesMap)
+
+print('\nPart 2\n=============')
 for i in range(NB_CYCLES):
     cubesMap = runCycle(cubesMap)
     nbActiveCubes = len(cubesMap.keys()) # Cubes map only contains active cubes
