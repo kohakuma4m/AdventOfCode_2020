@@ -20,21 +20,23 @@ class SYMBOL(Enum):
     ACTIVE = '#'
 
 class Cube():
-    def __init__(self, position: Coordinate3d, state: SYMBOL):
+    def __init__(self, position: Coordinate3d, state: SYMBOL, adjacentPositions: list = None):
         self.position = position
         self.state = state
-        self.adjacentCubes = set([])
+        self.adjacentPositions = sorted(get3dAdjacentPositions(position)) if adjacentPositions is None else adjacentPositions
 
-    def isActive(self):
+    def isActive(self) -> bool:
         return self.state == SYMBOL.ACTIVE
 
-    def getNewState(self):
-        nbActiveNeighborCubes = len([c for c in self.adjacentCubes if c.isActive()])
+    def nbActiveNeighborCubes(self, cubesMap: dict) -> int:
+        return len([p for p in self.adjacentPositions if p in cubesMap]) # Cubes map only contains active cubes
 
+    def getNewState(self, cubesMap: dict) -> SYMBOL:
+        nbActiveNeighbors = self.nbActiveNeighborCubes(cubesMap)
         if self.isActive():
-            return SYMBOL.ACTIVE if utils.inbetween(2, nbActiveNeighborCubes, 3) else SYMBOL.INACTIVE
+            return SYMBOL.ACTIVE if utils.inbetween(2, nbActiveNeighbors, 3) else SYMBOL.INACTIVE
         else:
-            return SYMBOL.ACTIVE if nbActiveNeighborCubes == 3 else SYMBOL.INACTIVE
+            return SYMBOL.ACTIVE if nbActiveNeighbors == 3 else SYMBOL.INACTIVE
 
     def __eq__(self, other):
         return self.position == other.position
@@ -45,66 +47,70 @@ class Cube():
     def __str__(self):
         return '(%s, %s, %s) --> %s' % (self.position.x, self.position.y, self.position.z, self.state.name)
 
-def mapCubes(grid: Grid) -> dict:
+# Note: We only need to track ACTIVE cube, since INACTIVE cube with no ACTIVE cube neighbors will always remain INACTIVE
+def mapActiveCubes(grid: Grid) -> dict:
     cubesMap = {}
 
-    # Map cubes
+    # Map active cubes
     for y in range(0, grid.height):
         for x in range(0, grid.width):
             s = SYMBOL(grid.data[y][x])
-            p = Coordinate3d(x, y, 0)
-            cubesMap[p] = Cube(p, s)
+            if s == SYMBOL.ACTIVE:
+                p = Coordinate3d(x, y, 0)
+                cubesMap[p] = Cube(p, s)
 
     return cubesMap
 
-def mapCubesNeighbors(cubesMap: dict) -> None:
+def runCycle(cubesMap: dict) -> dict:
+    checkedCubePositions = set()
     newCubesMap = {}
 
-    # Original cubes
     for p, cube in cubesMap.items():
-        if len(cube.adjacentCubes) == 26:
-            continue # All cube neighbors already mapped
+        checkedCubePositions.add(p)
 
-        for p2 in get3dAdjacentPositions(p):
+        # Current cube
+        if cube.getNewState(cubesMap) == SYMBOL.ACTIVE:
+            # Only keeping cube if it still ACTIVE
+            newCubesMap[p] = Cube(p, SYMBOL.ACTIVE, cube.adjacentPositions)
+
+        # Cubes neighbors
+        for p2 in cube.adjacentPositions:
+            if p2 in checkedCubePositions:
+                continue # Already check when checking other cube neighbors
+
+            checkedCubePositions.add(p2)
+
             if p2 in cubesMap:
                 # Inner cubes (already in map)
-                cube.adjacentCubes.add(cubesMap[p2])
+                if cubesMap[p2].getNewState(cubesMap) == SYMBOL.ACTIVE:
+                    # Only keeping cube if it still ACTIVE
+                    newCubesMap[p2] = Cube(p2, SYMBOL.ACTIVE, cube.adjacentPositions)
             else:
                 # Outer cubes (outside map range)
                 newCube = Cube(p2, SYMBOL.INACTIVE)
-                newCubesMap[p2] = newCube
+                newCube.state = newCube.getNewState(cubesMap)
+                if newCube.state == SYMBOL.ACTIVE:
+                    # Only keeping new cube if it becomes ACTIVE
+                    newCubesMap[p2] = newCube
 
-    # New cubes
-    for p2, newCube in newCubesMap.items():
-        cubesMap[p2] = newCube # Adding new cubes to cubes map
-        for p in get3dAdjacentPositions(p2):
-            if p in cubesMap:
-                newCube.adjacentCubes.add(cubesMap[p])
-                cubesMap[p].adjacentCubes.add(newCube)
-            if p in newCubesMap:
-                newCube.adjacentCubes.add(newCubesMap[p])
-                newCubesMap[p].adjacentCubes.add(newCube)
-
-def runCycle(cubesMap: dict) -> None:
-    # Calculate new states
-    newStates = { p: cube.getNewState() for p, cube in cubesMap.items() }
-
-    # Apply new states
-    for p, newState in newStates.items():
-        cubesMap[p].state = newState
-
-def countActiveCubes(cubesMap: dict) -> int:
-    return len([c for c in cubesMap.values() if c.isActive()])
+    return newCubesMap
 
 def printCubesMap(cubesMap: dict) -> None:
-    xPositions = [p.x for p in cubesMap.keys()]
-    yPositions = [p.y for p in cubesMap.keys()]
-    zPositions = [p.z for p in cubesMap.keys()]
+    xPositions = sorted([p.x for p in cubesMap.keys()])
+    yPositions = sorted([p.y for p in cubesMap.keys()])
+    zPositions = sorted([p.z for p in cubesMap.keys()])
 
-    for z in range(min(zPositions), max(zPositions) + 1):
+    for z in range(zPositions[0] - 1, zPositions[-1] + 2):
         print('z = %d' % z)
-        for y in range(min(yPositions), max(yPositions) + 1):
-            print(''.join([cubesMap[Coordinate3d(x, y, z)].state.value for x in range(min(xPositions), max(xPositions) + 1)]))
+        for y in range(yPositions[0] - 1, yPositions[-1] + 2):
+            s = ''
+            for x in range(xPositions[0] - 1, xPositions[-1] + 2):
+                p = Coordinate3d(x, y, z)
+                if p in cubesMap:
+                    s += cubesMap[p].state.value # Should be ACTIVE
+                else:
+                    s += SYMBOL.INACTIVE.value
+            print(s)
         print('\n')
 
 # endregion COMMON
@@ -120,15 +126,10 @@ lines = utils.readFileLines(filename)
 ########
 
 grid = Grid(lines)
-cubesMap = mapCubes(grid)
-mapCubesNeighbors(cubesMap)
+cubesMap = mapActiveCubes(grid)
 
 printCubesMap(cubesMap)
 for i in range(NB_CYCLES):
-    runCycle(cubesMap) # Getting new states
-    mapCubesNeighbors(cubesMap) # Adding new cube neighbors
-    print(f'After {i+1} cycles')
-    #printCubesMap(cubesMap)
-
-nbActiveCubes = countActiveCubes(cubesMap)
-print(f'1) Number of active cubes after {NB_CYCLES} cycles = {nbActiveCubes}')
+    cubesMap = runCycle(cubesMap)
+    nbActiveCubes = len(cubesMap.keys()) # Cubes map only contains active cubes
+    print(f'Number of active cubes after {i+1} cycles = {nbActiveCubes}')

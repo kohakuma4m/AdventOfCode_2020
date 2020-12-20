@@ -19,22 +19,24 @@ class SYMBOL(Enum):
     INACTIVE = '.'
     ACTIVE = '#'
 
-class Hypercube():
-    def __init__(self, position: Coordinate4d, state: SYMBOL):
+class Cube():
+    def __init__(self, position: Coordinate4d, state: SYMBOL, adjacentPositions: list = None):
         self.position = position
         self.state = state
-        self.adjacentHypercubes = set([])
+        self.adjacentPositions = sorted(get4dAdjacentPositions(position)) if adjacentPositions is None else adjacentPositions
 
-    def isActive(self):
+    def isActive(self) -> bool:
         return self.state == SYMBOL.ACTIVE
 
-    def getNewState(self):
-        nbActiveNeighborHypercubes = len([c for c in self.adjacentHypercubes if c.isActive()])
+    def nbActiveNeighborCubes(self, cubesMap: dict) -> int:
+        return len([p for p in self.adjacentPositions if p in cubesMap]) # Cubes map only contains active cubes
 
+    def getNewState(self, cubesMap: dict) -> SYMBOL:
+        nbActiveNeighbors = self.nbActiveNeighborCubes(cubesMap)
         if self.isActive():
-            return SYMBOL.ACTIVE if utils.inbetween(2, nbActiveNeighborHypercubes, 3) else SYMBOL.INACTIVE
+            return SYMBOL.ACTIVE if utils.inbetween(2, nbActiveNeighbors, 3) else SYMBOL.INACTIVE
         else:
-            return SYMBOL.ACTIVE if nbActiveNeighborHypercubes == 3 else SYMBOL.INACTIVE
+            return SYMBOL.ACTIVE if nbActiveNeighbors == 3 else SYMBOL.INACTIVE
 
     def __eq__(self, other):
         return self.position == other.position
@@ -45,68 +47,72 @@ class Hypercube():
     def __str__(self):
         return '(%s, %s, %s, %s) --> %s' % (self.position.x, self.position.y, self.position.z, self.position.w, self.state.name)
 
-def mapHypercubes(grid: Grid) -> dict:
-    hypercubesMap = {}
+# Note: We only need to track ACTIVE cube, since INACTIVE cube with no ACTIVE cube neighbors will always remain INACTIVE
+def mapActiveCubes(grid: Grid) -> dict:
+    cubesMap = {}
 
-    # Map cubes
+    # Map active cubes
     for y in range(0, grid.height):
         for x in range(0, grid.width):
             s = SYMBOL(grid.data[y][x])
-            p = Coordinate4d(x, y, 0, 0)
-            hypercubesMap[p] = Hypercube(p, s)
+            if s == SYMBOL.ACTIVE:
+                p = Coordinate4d(x, y, 0, 0)
+                cubesMap[p] = Cube(p, s)
 
-    return hypercubesMap
+    return cubesMap
 
-def mapHypercubesNeighbors(hypercubesMap: dict) -> None:
-    newHypercubesMap = {}
+def runCycle(cubesMap: dict) -> dict:
+    checkedCubePositions = set()
+    newCubesMap = {}
 
-    # Original hypercubes
-    for p, hypercube in hypercubesMap.items():
-        if len(hypercube.adjacentHypercubes) == 80:
-            continue # All cube neighbors already mapped
+    for p, cube in cubesMap.items():
+        checkedCubePositions.add(p)
 
-        for p2 in get4dAdjacentPositions(p):
-            if p2 in hypercubesMap:
-                # Inner hypercubes (already in map)
-                hypercube.adjacentHypercubes.add(hypercubesMap[p2])
+        # Current cube
+        if cube.getNewState(cubesMap) == SYMBOL.ACTIVE:
+            # Only keeping cube if it still ACTIVE
+            newCubesMap[p] = Cube(p, SYMBOL.ACTIVE, cube.adjacentPositions)
+
+        # Cubes neighbors
+        for p2 in cube.adjacentPositions:
+            if p2 in checkedCubePositions:
+                continue # Already check when checking other cube neighbors
+
+            checkedCubePositions.add(p2)
+
+            if p2 in cubesMap:
+                # Inner cubes (already in map)
+                if cubesMap[p2].getNewState(cubesMap) == SYMBOL.ACTIVE:
+                    # Only keeping cube if it still ACTIVE
+                    newCubesMap[p2] = Cube(p2, SYMBOL.ACTIVE, cube.adjacentPositions)
             else:
-                # Outer hypercubes (outside map range)
-                newHypercube = Hypercube(p2, SYMBOL.INACTIVE)
-                newHypercubesMap[p2] = newHypercube
+                # Outer cubes (outside map range)
+                newCube = Cube(p2, SYMBOL.INACTIVE)
+                newCube.state = newCube.getNewState(cubesMap)
+                if newCube.state == SYMBOL.ACTIVE:
+                    # Only keeping new cube if it becomes ACTIVE
+                    newCubesMap[p2] = newCube
 
-    # New hypercubes
-    for p2, newHypercube in newHypercubesMap.items():
-        hypercubesMap[p2] = newHypercube # Adding new hypercubes to hypercubes map
-        for p in get4dAdjacentPositions(p2):
-            if p in hypercubesMap:
-                newHypercube.adjacentHypercubes.add(hypercubesMap[p])
-                hypercubesMap[p].adjacentHypercubes.add(newHypercube)
-            if p in newHypercubesMap:
-                newHypercube.adjacentHypercubes.add(newHypercubesMap[p])
-                newHypercubesMap[p].adjacentHypercubes.add(newHypercube)
+    return newCubesMap
 
-def runCycle(hypercubesMap: dict) -> None:
-    # Calculate new states
-    newStates = { p: hypercube.getNewState() for p, hypercube in hypercubesMap.items() }
+def printCubesMap(cubesMap: dict) -> None:
+    xPositions = sorted([p.x for p in cubesMap.keys()])
+    yPositions = sorted([p.y for p in cubesMap.keys()])
+    zPositions = sorted([p.z for p in cubesMap.keys()])
+    wPositions = sorted([p.w for p in cubesMap.keys()])
 
-    # Apply new states
-    for p, newState in newStates.items():
-        hypercubesMap[p].state = newState
-
-def countActiveHypercubes(hypercubesMap: dict) -> int:
-    return len([hc for hc in hypercubesMap.values() if hc.isActive()])
-
-def printHypercubesMap(hypercubesMap: dict) -> None:
-    xPositions = [p.x for p in hypercubesMap.keys()]
-    yPositions = [p.y for p in hypercubesMap.keys()]
-    zPositions = [p.z for p in hypercubesMap.keys()]
-    wPositions = [p.w for p in hypercubesMap.keys()]
-
-    for w in range(min(wPositions), max(wPositions) + 1):
-        for z in range(min(zPositions), max(zPositions) + 1):
+    for w in range(wPositions[0] - 1, wPositions[-1] + 2):
+        for z in range(zPositions[0] - 1, zPositions[-1] + 2):
             print('z = %d, w = %d' % (z, w))
-            for y in range(min(yPositions), max(yPositions) + 1):
-                print(''.join([hypercubesMap[Coordinate4d(x, y, z, w)].state.value for x in range(min(xPositions), max(xPositions) + 1)]))
+            for y in range(yPositions[0] - 1, yPositions[-1] + 2):
+                s = ''
+                for x in range(xPositions[0] - 1, xPositions[-1] + 2):
+                    p = Coordinate4d(x, y, z, w)
+                    if p in cubesMap:
+                        s += cubesMap[p].state.value # Should be ACTIVE
+                    else:
+                        s += SYMBOL.INACTIVE.value
+                print(s)
             print('\n')
 
 # endregion COMMON
@@ -122,15 +128,10 @@ lines = utils.readFileLines(filename)
 ########
 
 grid = Grid(lines)
-hypercubesMap = mapHypercubes(grid)
-mapHypercubesNeighbors(hypercubesMap)
+cubesMap = mapActiveCubes(grid)
 
-printHypercubesMap(hypercubesMap)
+printCubesMap(cubesMap)
 for i in range(NB_CYCLES):
-    runCycle(hypercubesMap) # Getting new states
-    mapHypercubesNeighbors(hypercubesMap) # Adding new hypercube neighbors
-    print(f'After {i+1} cycles')
-    #printHypercubesMap(hypercubesMap)
-
-nbActiveHypercubes = countActiveHypercubes(hypercubesMap)
-print(f'2) Number of active hypercubes after {NB_CYCLES} cycles = {nbActiveHypercubes}')
+    cubesMap = runCycle(cubesMap)
+    nbActiveCubes = len(cubesMap.keys()) # Cubes map only contains active cubes
+    print(f'Number of active cubes after {i+1} cycles = {nbActiveCubes}')
