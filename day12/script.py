@@ -1,7 +1,6 @@
 import sys; sys.path.append('../common')
 import mylib as utils # pylint: disable=import-error
-import map2d as mapUtils # pylint: disable=import-error
-from map2d import Coordinate # pylint: disable=import-error
+from maplib import Coordinate, getManhattanDistance # pylint: disable=import-error
 
 from enum import Enum
 
@@ -112,7 +111,7 @@ instructions = [(ACTION(s[0]), int(s[1:])) for s in lines]
 
 startPosition = Coordinate(0, 0)
 (endPosition, direction) = moveShip(instructions, startPosition, ACTION.EAST)
-distance = mapUtils.get2dManhattanDistance(startPosition, endPosition)
+distance = getManhattanDistance(startPosition, endPosition)
 
 print(f'1) The ship goes from ({startPosition.x}, {startPosition.y}) to ({endPosition.x}, {endPosition.y}) at distance {distance}, facing {direction.name}\n')
 
@@ -123,6 +122,6 @@ print(f'1) The ship goes from ({startPosition.x}, {startPosition.y}) to ({endPos
 shipPosition = Coordinate(0, 0)
 waypointPosition = Coordinate(10, 1)
 (endShipPosition, endWaypointPosition, direction2) = moveShipWithWaypoint(instructions, shipPosition, waypointPosition)
-distance2 = mapUtils.get2dManhattanDistance(shipPosition, endShipPosition)
+distance2 = getManhattanDistance(shipPosition, endShipPosition)
 
 print(f'2) The ship goes to position ({endShipPosition.x}, {endShipPosition.y}), with waypoint at ({endWaypointPosition.x}, {endPosition.y}), at distance {distance2}, facing {direction2.name}\n')

@@ -1,7 +1,6 @@
 import sys; sys.path.append('../common')
 import mylib as utils # pylint: disable=import-error
-import map2d as mapUtils # pylint: disable=import-error
-from map2d import Coordinate, Grid # pylint: disable=import-error
+from maplib import Coordinate, Grid, getAdjacentDirections, getAdjacentPositions # pylint: disable=import-error
 
 from enum import Enum
 from copy import deepcopy
@@ -20,8 +19,8 @@ class SYMBOL(Enum):
 
 # For color print of non black symbols
 SYMBOL_COLORS = {
-    SYMBOL.EMPTY_SEAT.value: mapUtils.COLOR_CODES.FAINT.value,
-    SYMBOL.OCCUPIED_SEAT.value: mapUtils.COLOR_CODES.BOLD.value
+    SYMBOL.EMPTY_SEAT.value: utils.COLOR_CODES.FAINT.value,
+    SYMBOL.OCCUPIED_SEAT.value: utils.COLOR_CODES.BOLD.value
 }
 
 class Seat():
@@ -66,7 +65,7 @@ def mapSeats(grid: Grid) -> dict:
 
 def mapSeatsNeighbors(grid: Grid, seatsGrid: dict) -> None:
     for p, seat in seatsGrid.items():
-        seat.adjacentSeats = [seatsGrid[p2] for p2 in mapUtils.get2dAdjacentPositions(p) if p2 in seatsGrid]
+        seat.adjacentSeats = [seatsGrid[p2] for p2 in getAdjacentPositions(p) if p2 in seatsGrid]
 
 def switchSeats(grid: Grid, seatsGrid: dict, switchSeatThreshold: int):
     newGrid = deepcopy(grid)
@@ -86,7 +85,7 @@ def switchSeats(grid: Grid, seatsGrid: dict, switchSeatThreshold: int):
     return (hasMovingSeats, newGrid)
 
 def remapSeatsNeighbors(grid: Grid, seatsGrid: dict) -> None:
-    directions = mapUtils.get8AdjacentDirections()
+    directions = [Coordinate(*d) for d in getAdjacentDirections(dimensions=2)]
 
     # Map seat grid neighbors with new rules
     for p, seat in seatsGrid.items():

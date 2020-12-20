@@ -1,8 +1,6 @@
 import sys; sys.path.append('../common')
 import mylib as utils # pylint: disable=import-error
-import map2d as mapUtils # pylint: disable=import-error
-from map2d import Grid # pylint: disable=import-error
-from map3d import Coordinate3d, get3dAdjacentPositions, get3dManhattanDistance # pylint: disable=import-error
+from maplib import Grid, Coordinate3d, getAdjacentPositions # pylint: disable=import-error
 
 from enum import Enum
 
@@ -23,7 +21,7 @@ class Cube():
     def __init__(self, position: Coordinate3d, state: SYMBOL, adjacentPositions: list = None):
         self.position = position
         self.state = state
-        self.adjacentPositions = sorted(get3dAdjacentPositions(position)) if adjacentPositions is None else adjacentPositions
+        self.adjacentPositions = sorted(getAdjacentPositions(position)) if adjacentPositions is None else adjacentPositions
 
     def isActive(self) -> bool:
         return self.state == SYMBOL.ACTIVE
