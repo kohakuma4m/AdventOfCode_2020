@@ -38,13 +38,28 @@ def getManhattanDistance(p1: tuple, p2: tuple):
 # 2d Grid
 class Grid():
     def __init__(self, data: list, printSeparator: str = '-') -> None:
+        self.data = [[column for column in row] for row in data] # To be sure strings are split
         self.height = len(data)
         self.width = len(data[0]) if self.height > 0 else 0
-        self.data = [[column for column in row] for row in data] # To be sure strings are split
         self.printSeparator = printSeparator
 
+    def flipX(self):
+        for y in range(self.height):
+            self.data[y].reverse() # Flip all rows (horizontal flip)
+
+    def flipY(self):
+        self.data.reverse() # Flip all columns (vertical flip)
+
+    def rotate(self, clockwise: bool = True):
+        if clockwise is True:
+            # Flip all columns then rotate
+            self.data = [list(row) for row in list(zip(*self.data[::-1]))]
+        else:
+            # Flip all columns then rotate, then reverse both rows and columns again
+            self.data = [list(row)[::-1] for row in list(zip(*self.data[::-1]))][::-1]
+
     def __str__(self) -> str:
-        separator = ''.join([self.printSeparator for i in range(0, self.width + 2)])
+        separator = ''.join([self.printSeparator for i in range(self.width + 2)])
         dataString = '\n'.join([' %s ' % ''.join(row) for row in self.data])
         return f'{separator}\n{dataString}\n{separator}\n'
 
