@@ -99,12 +99,13 @@ print('Number of unique listed allergens: %d\n' % len(allergens))
 ########
 
 (nonAllergenIngredients, ingredientPossibleAllergens) = findNonAllergenIngredients(foodItems, ingredients, allergens)
+nbAllergenIngredients = (len(ingredients) - len(nonAllergenIngredients))
 total = len([foodItem for ingredient in nonAllergenIngredients for foodItem in foodItems if ingredient in foodItem.ingredients])
 
-print('Ingredients with possible allergens:')
-print('---------------------------------------')
+print('Number of ingredients with possible allergens: %d' % nbAllergenIngredients)
+print('---------------------------------------------------------------------------------')
 print('\n'.join(['%-10s --> %s' % (ingredient, allergens) for ingredient, allergens in ingredientPossibleAllergens.items()]))
-print('---------------------------------------')
+print('---------------------------------------------------------------------------------')
 print('Number of non allergen ingredients: %d\n' % len(nonAllergenIngredients))
 print('1) Number of time non allergen ingredients are listed in all food items: %d\n' % total)
 
@@ -114,8 +115,8 @@ print('1) Number of time non allergen ingredients are listed in all food items: 
 
 allergenIngredients = identityAllergens(ingredientPossibleAllergens)
 
-print('Allergen ingredients')
-print('---------------------------------------')
-print('\n'.join(['%-10s --> %s' % (allergen, ingredient) for allergen, ingredient in allergenIngredients.items()]))
-print('---------------------------------------\n')
-print('2) Canonical dangerous ingredient list: "%s"' % ','.join(allergenIngredients.values()))
+print('Ingredients with allergens:')
+print('---------------------------')
+print('\n'.join(['%-10s --> %s' % (ingredient, allergen) for allergen, ingredient in allergenIngredients.items()]))
+print('---------------------------')
+print('2) Canonical dangerous ingredient list: "%s"\n' % ','.join(allergenIngredients.values()))
