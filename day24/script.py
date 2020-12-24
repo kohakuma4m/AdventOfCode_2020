@@ -126,7 +126,7 @@ print('-------------------------------------------')
 for i in range(1, NB_DAYS + 1):
     tilesMap = flipTiles(tilesMap)
     if i % 10 == 0:
-        nbBlackTiles = len([t for t in tilesMap.values() if t.color == COLOR.BLACK])
+        nbBlackTiles = len(tilesMap.keys()) # Only black tiles are tracked by now...
         print('Number of black tiles after %3d days: %d' % (i, nbBlackTiles))
 print('-------------------------------------------')
 
