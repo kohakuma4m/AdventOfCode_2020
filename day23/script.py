@@ -11,7 +11,7 @@ print(filename, '\n')
 # region COMMON
 
 '''
-    Version 1 using lists
+    Version 1 using list
 
     Optimized as followed:
     1) No list concatenations, list.pop, list.insert or list.append operations: we only edit affected list values in place
@@ -21,17 +21,22 @@ print(filename, '\n')
     (Estimated time of completion grows exponentially as numbers grow bigger and bigger...)
 '''
 def playCrabCupGame1(intialCupsOrder: list, nbMoves: int) -> (list, int):
-    cups = intialCupsOrder[:]
-    (minCup, maxCup) = (min(cups), max(cups))
-    nbCups = len(cups)
+    # Contant values
+    (nbCups, minCup, maxCup) = (len(intialCupsOrder), min(intialCupsOrder), max(intialCupsOrder))
 
-    start = time.time()
+    # List of cups
+    cups = intialCupsOrder[:] # Copy
+
+    # Initialization
     currentCup = cups[0]
     currentCupIndex = 0
+
+    start = time.time()
     for i in range(1, nbMoves+1):
+        # Note: Checking for time condition each move adds about 5s to total time
         if i % 1000 == 0:
-            end = time.time() - start
-            print('%-10d turns after %10.2fs --> ETA: %2.2f hours' % (i, end, end * (nbMoves / i) / 3600))
+            dt = time.time() - start
+            print('%-10d turns after %10.2fs --> ETA: %2.2f hours' % (i, dt, dt * (nbMoves / i) / 3600))
 
         # Pick three cups after current cup
         pickedCups = []
@@ -103,12 +108,15 @@ def playCrabCupGame2(cupsSequence: list, nbMoves: int) -> (dict, int):
     circularDict = dict(zip(cupsSequence, cupsSequence[1:])) # Each entry points to the next like a linked list
     circularDict[cupsSequence[-1]] = cupsSequence[0] # Last entry points back to first one (circular)
 
-    start = time.time()
+    # Initialization
     currentCup = cupsSequence[0]
+
+    start = time.time()
     for i in range(1, nbMoves + 1):
+        # Note: Checking for time condition each move only adds about 2s to total time
         if i % 1000000 == 0:
-            end = time.time() - start
-            print('%-8d turns after %5.2fs --> ETA: %2.2f seconds' % (i, end, end * (nbMoves / i)))
+            dt = time.time() - start
+            print('%-8d turns after %5.2fs --> ETA: %2.2f seconds' % (i, dt, dt * (nbMoves / i)))
 
         # Pick three cups after current cup
         pickedCups1 = circularDict[currentCup]
