@@ -19,6 +19,9 @@ Coordinate = buildCoordinate()
 Coordinate3d = buildCoordinate(dimensions=3)
 Coordinate4d = buildCoordinate(dimensions=4)
 
+# Hexagonal coordinates
+HexCoordinate = namedtuple('HexCoordinate2d', ['q', 'r']) # Col, row
+
 # Get all adjacent directions in any dimensions (excluding origin)
 def getAdjacentDirections(dimensions: int = 2) -> list:
     return sorted([tuple(c) for c in product([-1, 0, 1], repeat=dimensions) if c != (0,) * dimensions])
@@ -27,6 +30,17 @@ def getAdjacentDirections(dimensions: int = 2) -> list:
 def getAdjacentPositions(p: tuple) -> list:
     dimensions = len(p)
     return [tuple([p[i] + d[i] for i in range(dimensions)]) for d in getAdjacentDirections(dimensions)]
+
+# Get all adjacent hexagonal positions (even row layout)
+def getAdjacentHexPositions(p: tuple) -> list:
+    return [
+        HexCoordinate(p.q + 1, p.r), # East
+        HexCoordinate(p.q + 1 if p.r % 2 == 0 else p.q, p.r - 1), # North east
+        HexCoordinate(p.q + 1 if p.r % 2 == 0 else p.q, p.r + 1), # South east
+        HexCoordinate(p.q - 1, p.r), # West
+        HexCoordinate(p.q if p.r % 2 == 0 else p.q - 1, p.r - 1), # North west
+        HexCoordinate(p.q if p.r % 2 == 0 else p.q - 1, p.r + 1) # South west
+    ]
 
 # Get Manhattan distance in between two coordinates of any dimensions
 def getManhattanDistance(p1: tuple, p2: tuple):
